@@ -39,13 +39,23 @@ def main():
             token.write(creds.to_json())
 
     try:
-        service = build('sheets', 'v4', credentials=creds)
+        service = build('drive', 'v3', credentials=creds)
 
-        # Call the Sheets API
-        sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                    range=SAMPLE_RANGE_NAME).execute()
-        values = result.get('values', [])
+        # Call the Drive v3 API
+        results = service.files().list(
+            pageSize=10, fields="nextPageToken, files(id, name)").execute()
+        
+        # First, get the folder ID by querying by mimeType and name
+        folderId = service.files().list(q = "mimeType = 'application/vnd.google-apps.folder' and name = 'checkin sheets'", pageSize=10, fields="nextPageToken, files(id, name)").execute()
+        # this gives us a list of all folders with that name
+        folderIdResult = folderId.get('files', [])
+        # however, we know there is only 1 folder with that name, so we just get the id of the 1st item in the list
+        id = folderIdResult[0].get('id')
+
+        # Now, using the folder ID gotten above, we get all the files from
+        # that particular folder
+        results = service.files().list(q = "'" + id + "' in parents", pageSize=10, fields="nextPageToken, files(id, name)").execute()
+        items = results.get('files', [])
 
         if not values:
             print('No data found.')
