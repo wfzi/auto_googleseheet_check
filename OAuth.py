@@ -11,16 +11,13 @@ from googleapiclient.errors import HttpError
 import OAuth_function
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.metadata.readonly']
 
 # The ID and range of a sample spreadsheet.
-SPREADSHEET_ID = '1vfW_9OTYjo9OkY7f_nJWX-7CWrKfZUghNTA5bjney4I'
-RANGE_NAME = 'B2:B4'
+SPREADSHEET_ID = '1zM-9tdsbCMwqEdGILtiHE6WPUMCkpEk5kdKcYBAICA4'
+RANGE_NAME = 'OPT subscription tracking!A:G'
 
 def main():
-    """Shows basic usage of the Sheets API.
-    Prints values from a sample spreadsheet.
-    """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -38,10 +35,21 @@ def main():
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
-    print(type(creds))
 
-    values = OAuth_function.get_values(SPREADSHEET_ID, RANGE_NAME, creds)
-    print(values)
+    #Get information from OPT subscription tracking sheets
+    values = OAuth_function.get_values(SPREADSHEET_ID, RANGE_NAME, creds)[1:]
+    
+    #loop into each person
+    for row, person in enumerate(values):
+        #get name and day
+        month, day, year, name = person[0].split('-')
+
+        #add sheet id if miss
+        if len(person) <= 6 or person[6] == "No files found.":
+            cur_id = OAuth_function.get_sheet_id(name, creds)
+            OAuth_function.update_values(SPREADSHEET_ID,
+                  "OPT subscription tracking!G" + str(row + 2), "USER_ENTERED",
+                  [[cur_id]], creds)
 
 
 if __name__ == '__main__':
