@@ -17,18 +17,44 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapi
 SPREADSHEET_ID = '1zM-9tdsbCMwqEdGILtiHE6WPUMCkpEk5kdKcYBAICA4'
 RANGE_NAME = 'OPT subscription tracking!A:G'
 
-SPREADSHEET_DICT = {
-    "test"              : "1vfW_9OTYjo9OkY7f_nJWX-7CWrKfZUghNTA5bjney4I",
-    "tracking-form"     : "1zM-9tdsbCMwqEdGILtiHE6WPUMCkpEk5kdKcYBAICA4",
-    "Tommi-Surya"       : "14MIJXZ0A5Aj8nuAWZrMe0s3qbGXa-HQiXdLrnnBezXM",
-    "Shiyao-Wang"       : "1RNsQbjaIm8OVfYed2gUV--oUe2LCG4o9sZmKc4GpQYw",
-    "Digvijay-Singh"    : "1rEG54WPhy-2OsyAUctWsW500JZEeA65RVLLpZPKFYKU"
-}
 
-MOCK_WEEKLY_REPORT_INFO = {
-    "volunteer_info"    : ['Qilong Guo', 'qguo14@ucsc.edu ', (2022, 42, 1), '10-17-22', '10-15-22', '07-14-23'],
-    "sheet_id"          : "1yXLOVg0fL0LRji8UQZpsHMbFah33sUymIw5GglwpAZc"
-}
+def update_OPT_tracking_sheet(creds: 'Credentials'):
+    """
+    Update the volunteer information in the OPT tracking sheet,
+    specifically the URL ID of each weekly report sheet for each volunteer
+    """
+
+    #Get information from OPT subscription tracking sheets
+    values = OAuth_function.get_values(SPREADSHEET_ID, RANGE_NAME, creds)[1:]
+    
+    #loop into each person
+    for row, person in enumerate(values):
+        #get name and day
+        month, day, year, name = person[0].split('-')
+
+        #add sheet id if miss
+        if len(person) <= 6 or person[6] == "No files found.":
+            cur_id = OAuth_function.get_sheet_id(name, creds)
+            OAuth_function.update_values(SPREADSHEET_ID,
+                  "OPT subscription tracking!G" + str(row + 2), "USER_ENTERED",
+                  [[cur_id]], creds)
+
+
+def verify_all_weekly_report(creds: 'Credentials'):
+    """
+    Retrieve formated volunteer information from the main OPT tracking sheet,
+    and verify the weekly report sheet for each volunteer.
+
+    TODO: Update the verification logic after confirming the sheet format
+    """
+
+    # Retrieve all volunteer information from the main tracking form
+    volunteerInfo = OAuth_function.get_volunteer_info(SPREADSHEET_ID, creds)
+    for info in volunteerInfo:
+        print()
+        print(info[0])
+        print(OAuth_function.verify_weekly_report(info, info[6], creds))
+
 
 def main():
     creds = None
@@ -49,29 +75,10 @@ def main():
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
-    # Retrieve all volunteer information from the main tracking form
-    volunteerInfo = OAuth_function.get_volunteer_info(SPREADSHEET_DICT['tracking-form'], creds)
-    for info in volunteerInfo:
-        print()
-        print(info[0])
-        print(OAuth_function.verify_weekly_report(info, info[6], creds))
+    update_OPT_tracking_sheet(creds)
 
-    # print(OAuth_function.verify_weekly_report(MOCK_WEEKLY_REPORT_INFO['volunteer_info'], MOCK_WEEKLY_REPORT_INFO['sheet_id'], creds))
-    #Get information from OPT subscription tracking sheets
-    values = OAuth_function.get_values(SPREADSHEET_ID, RANGE_NAME, creds)[1:]
+    verify_all_weekly_report(creds)
     
-    #loop into each person
-    for row, person in enumerate(values):
-        #get name and day
-        month, day, year, name = person[0].split('-')
-
-        #add sheet id if miss
-        if len(person) <= 6 or person[6] == "No files found.":
-            cur_id = OAuth_function.get_sheet_id(name, creds)
-            OAuth_function.update_values(SPREADSHEET_ID,
-                  "OPT subscription tracking!G" + str(row + 2), "USER_ENTERED",
-                  [[cur_id]], creds)
-
 
 if __name__ == '__main__':
     main()

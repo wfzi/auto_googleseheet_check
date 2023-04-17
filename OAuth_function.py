@@ -1,3 +1,8 @@
+"""
+Documentation conventions: numpy docstring conventions
+https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard
+"""
+
 from __future__ import print_function
 
 import os.path
@@ -19,18 +24,22 @@ def get_values(spreadsheet_id: 'str', range_name: 'str', creds: 'Credentials') -
     """
     Get the value from a google sheets by specific sheets id, range and credentials
 
-    Parameters: spreadsheet_id: str
-                The id of the spreadsheet.
+    Parameters
+    ----------
+    spreadsheet_id : str
+        The id of the spreadsheet.
 
-                range_name: str
-                Sheets name, colume and row name of the cells you want to retrieve. example: A1:C2
+    range_name : str
+        Sheets name, colume and row name of the cells you want to retrieve. example: A1:C2
 
-                creds: Credentials
-                Credentials of google api
+    creds : Credentials
+        Credentials of google api
     
-    Returns:    list[list[str]]
-                The value of the cells you retrived
-        """
+    Returns
+    -------
+    list[list[str]]
+        The value of the cells you retrived
+    """
     try:
         service = build('sheets', 'v4', credentials=creds)
 
@@ -44,19 +53,24 @@ def get_values(spreadsheet_id: 'str', range_name: 'str', creds: 'Credentials') -
     except HttpError as err:
         print(err)
 
+
 def get_sheet_id(name: 'str', creds: 'Credentials') -> 'str':
     """
-    get the weekly report sheets id by name and credentials
+    Get the weekly report sheets id by name and credentials
 
-    Parameters: name: str
-                Name of the people whose weekly report sheets id we want to get.
+    Parameters
+    ----------
+    name : str
+        Name of the people whose weekly report sheets id we want to get.
 
-                creds: Credentials
-                Credentials of google api
+    creds : Credentials
+        Credentials of google api
     
-    Returns:    str
-                The weekly report sheets id
-        """
+    Returns
+    -------
+    str
+        The weekly report sheets id
+    """
     try:
         service = build('drive', 'v3', credentials=creds)
 
@@ -74,27 +88,33 @@ def get_sheet_id(name: 'str', creds: 'Credentials') -> 'str':
     except HttpError as err:
         print(err)
 
+
 def update_values(spreadsheet_id: 'str', range_name: 'str', value_input_option: 'str', values: 'list[list[str]]', creds: 'Credentials'):
     """
     Write the content into google sheets
 
-    Parameters: spreadsheet_id: str
-                The id of the spreadsheet.
+    Parameters
+    ----------
+    spreadsheet_id : str
+        The id of the spreadsheet.
 
-                range_name: str
-                Sheets name, colume and row name of the cells you want to retrieve. example: A1:C2
+    range_name : str
+        Sheets name, colume and row name of the cells you want to retrieve. example: A1:C2
 
-                value_input_option: str
-                How we want to input our value
+    value_input_option : str
+        How we want to input our value
 
-                values: The values we want to write in
+    values : list[list[str]]
+        The values we want to write in
 
-                creds: Credentials
-                Credentials of google api
+    creds : Credentials
+        Credentials of google api
     
-    Returns:    list[list[str]]
-                The value of the cells you retrived
-        """
+    Returns
+    -------
+    list[list[str]]
+        The value of the cells you retrived
+    """
     # pylint: disable=maybe-no-member
     try:
 
@@ -110,14 +130,24 @@ def update_values(spreadsheet_id: 'str', range_name: 'str', value_input_option: 
         print(f"An error occurred: {error}")
         return error
 
+
 def get_volunteer_info(mainTrackingForm_id: 'str', creds: 'Credentials') -> 'list[list[str]]':
     """
-    Return the formated information retrieved from the main tracking google sheet for
-    all active volunteers.
+    Return the formated information retrieved from the main tracking google sheet for all active volunteers.
 
-    Returns:    list[list[str]]
-                Information for each active volunteers in format:
-                [Name, Email, Start Week, Start Monday, Start Date, End Date]
+    Parameters
+    ----------
+    mainTrackingForm_id : str
+        The Google Sheet URL ID for the main OPT tracking sheet
+
+    creds : Credentials
+        Credentials of google api
+
+    Returns
+    -------
+    list[list[str]]
+        Information for each active volunteers in format:
+        [Name, Email, Start Week, Start Monday, Start Date, End Date, Sheet URL ID]
     """
     service = build('sheets', 'v4', credentials=creds)
     sheet = service.spreadsheets()
@@ -157,6 +187,7 @@ def get_volunteer_info(mainTrackingForm_id: 'str', creds: 'Credentials') -> 'lis
 
             sheetURL = formData[6]
 
+            # Format the volunteer information
             info = [name,
                     email,
                     startWeekInfo,
@@ -177,6 +208,25 @@ def verify_weekly_report(volunteerInfo: 'list[str]', spreadsheet_id: 'str', cred
     1. Recorded activities for each week.
     2. Records should match the activity period (start/end date).
     3. Record for each week should be unique.
+
+    TODO: Update the verification logic after confirming the sheet format
+
+    Parameters
+    ----------
+    volunteerInfo : list[str]
+        Volunteer information for a single volunteer
+        [Name, Email, Start Week, Start Monday, Start Date, End Date, Sheet URL ID]
+
+    spreadsheet_id : str
+        The Google Sheet URL ID for a single volunteer weekly report sheet
+
+    creds : Credentials
+        Credentials of google api
+
+    Returns
+    -------
+    bool
+        Boolean indicates if the given report sheet is valid with given volunteer information
     """
     try:
         service = build('sheets', 'v4', credentials=creds)
@@ -215,8 +265,8 @@ def verify_weekly_report(volunteerInfo: 'list[str]', spreadsheet_id: 'str', cred
         rawWeekInfo = get_values(spreadsheet_id, weekNumGrid, creds)
         rawRecordInfo = get_values(spreadsheet_id, recordGrid, creds)
 
-        for week in rawWeekInfo:
-            print(week)
+        for week, record in zip(rawWeekInfo, rawRecordInfo):
+            print(week, " ", record)
 
         return True
     
