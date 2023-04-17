@@ -17,6 +17,19 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = '1vfW_9OTYjo9OkY7f_nJWX-7CWrKfZUghNTA5bjney4I'
 RANGE_NAME = 'B2:B4'
 
+SPREADSHEET_DICT = {
+    "test"              : "1vfW_9OTYjo9OkY7f_nJWX-7CWrKfZUghNTA5bjney4I",
+    "tracking-form"     : "1zM-9tdsbCMwqEdGILtiHE6WPUMCkpEk5kdKcYBAICA4",
+    "Tommi-Surya"       : "14MIJXZ0A5Aj8nuAWZrMe0s3qbGXa-HQiXdLrnnBezXM",
+    "Shiyao-Wang"       : "1RNsQbjaIm8OVfYed2gUV--oUe2LCG4o9sZmKc4GpQYw",
+    "Digvijay-Singh"    : "1rEG54WPhy-2OsyAUctWsW500JZEeA65RVLLpZPKFYKU"
+}
+
+MOCK_WEEKLY_REPORT_INFO = {
+    "volunteer_info"    : ['Qilong Guo', 'qguo14@ucsc.edu ', (2022, 42, 1), '10-17-22', '10-15-22', '07-14-23'],
+    "sheet_id"          : "1yXLOVg0fL0LRji8UQZpsHMbFah33sUymIw5GglwpAZc"
+}
+
 def main():
     """Shows basic usage of the Sheets API.
     Prints values from a sample spreadsheet.
@@ -40,8 +53,14 @@ def main():
             token.write(creds.to_json())
     print(type(creds))
 
-    values = OAuth_function.get_values(SPREADSHEET_ID, RANGE_NAME, creds)
-    print(values)
+    # Retrieve all volunteer information from the main tracking form
+    volunteerInfo = OAuth_function.get_volunteer_info(SPREADSHEET_DICT['tracking-form'], creds)
+    for info in volunteerInfo:
+        print()
+        print(info[0])
+        print(OAuth_function.verify_weekly_report(info, info[6], creds))
+
+    # print(OAuth_function.verify_weekly_report(MOCK_WEEKLY_REPORT_INFO['volunteer_info'], MOCK_WEEKLY_REPORT_INFO['sheet_id'], creds))
 
 
 if __name__ == '__main__':
