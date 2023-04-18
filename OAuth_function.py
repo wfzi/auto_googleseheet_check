@@ -110,12 +110,6 @@ def update_values(spreadsheet_id: 'str', range_name: 'str', value_input_option: 
     creds : Credentials
         Credentials of google api
     
-    Returns
-    -------
-    list[list[str]]
-        The value of the cells you retrived
-    """
-    # pylint: disable=maybe-no-member
     try:
 
         service = build('sheets', 'v4', credentials=creds)
